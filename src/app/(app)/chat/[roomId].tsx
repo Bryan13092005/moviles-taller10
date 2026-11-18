@@ -2,13 +2,15 @@ import { useAuthStore } from "@features/auth/presentation/store/authStore";
 import { Message } from "@features/chat/domain/entities/Message";
 import { useChat } from "@features/chat/presentation/hooks/useChat";
 import { useLocalSearchParams } from "expo-router";
+import { HeaderHeightContext } from "expo-router/react-navigation";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -16,6 +18,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { BouncyPressable } from "@/components/ui/BouncyPressable";
@@ -27,10 +30,39 @@ export default function ChatScreen() {
   const user = useAuthStore((s) => s.user);
   const [input, setInput] = useState("");
   const listRef = useRef<FlatList>(null);
+  const insets = useSafeAreaInsets();
+  const headerHeightContext = useContext(HeaderHeightContext);
+  const headerHeight =
+    headerHeightContext ??
+    (Platform.OS === "ios" ? insets.top + 44 : 0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
     if (messages.length > 0) listRef.current?.scrollToEnd({ animated: true });
   }, [messages.length]);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => {
+        setIsKeyboardVisible(true);
+        setTimeout(() => {
+          listRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setIsKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
@@ -203,8 +235,8 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      behavior="padding"
+      keyboardVerticalOffset={headerHeight}
     >
       <FlatList
         ref={listRef}
@@ -216,6 +248,18 @@ export default function ChatScreen() {
           messages.length === 0 && styles.listEmptyContainer,
         ]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        onContentSizeChange={() => {
+          if (messages.length > 0) {
+            listRef.current?.scrollToEnd({ animated: false });
+          }
+        }}
+        onLayout={() => {
+          if (messages.length > 0) {
+            listRef.current?.scrollToEnd({ animated: false });
+          }
+        }}
         ListEmptyComponent={
           isLoading ? (
             <View style={styles.loadingContainer}>
@@ -242,7 +286,16 @@ export default function ChatScreen() {
       />
 
       {/* Floating Bottom Input Bar */}
-      <View style={styles.inputBar}>
+      <View
+        style={[
+          styles.inputBar,
+          {
+            paddingBottom: isKeyboardVisible
+              ? 10
+              : Math.max(insets.bottom, 10),
+          },
+        ]}
+      >
         <BouncyPressable
           style={[styles.mediaBtn, isSending && styles.disabledBtn]}
           onPress={handleChooseImageSource}
@@ -267,6 +320,11 @@ export default function ChatScreen() {
           multiline
           maxLength={500}
           selectionColor={theme.colors.accent.primary}
+          onFocus={() => {
+            setTimeout(() => {
+              listRef.current?.scrollToEnd({ animated: true });
+            }, 120);
+          }}
         />
 
         <BouncyPressable
