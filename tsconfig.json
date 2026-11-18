@@ -20,6 +20,18 @@
       ],
       "@shared/*": [
         "src/shared/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@/*": [
+        "src/*"
+      ],
+      "@theme/*": [
+        "src/theme/*"
+      ],
+      "@theme": [
+        "src/theme/index"
       ]
     }
   }

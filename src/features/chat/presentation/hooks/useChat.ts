@@ -38,7 +38,7 @@ export function useChat(roomId: string) {
       });
     });
     return unsubscribe; // Cleanup al desmontar: cierra el WebSocket
-  }, [roomId]);
+  }, [queryClient, roomId]);
 
   // Paso 3: enviar mensaje con optimistic update via useMutation
   const sendMutation = useMutation({

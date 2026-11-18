@@ -18,7 +18,7 @@ function AuthGuard() {
   useEffect(() => {
     // Restaurar sesión desde AsyncStorage al iniciar la app
     authRepo.getCurrentUser().then(setUser);
- 
+
     // Escuchar cambios de sesión: token expirado, logout en otro dispositivo
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -31,13 +31,13 @@ function AuthGuard() {
       }
     );
     return () => subscription.unsubscribe();
-  }, []);
- 
+  }, [setUser]);
+
   useEffect(() => {
     const inAuth = segments[0] === '(auth)';
     if (!user && !inAuth) router.replace('/(auth)/login');
     if (user  && inAuth)  router.replace('/(app)');
-  }, [user, segments]);
+  }, [user, segments, router]);
  
   return <Slot />;
 }

@@ -29,7 +29,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Permite que $(PRODUCT_NAME) acceda a tus fotos para enviarlas en el chat.",
-          "cameraPermission": false,
+          "cameraPermission": "Permite que $(PRODUCT_NAME) acceda a la cámara para tomar fotos y enviarlas en el chat.",
           "microphonePermission": false
         }
       ],

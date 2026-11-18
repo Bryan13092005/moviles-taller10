@@ -44,8 +44,8 @@ export class SupabaseChatRepository implements IChatRepository {
     userId: string,
     image: ChatImage,
   ): Promise<Message> {
-    const extension = this.getExtension(image.mimeType, image.fileName);
-    const path = `${roomId}/${userId}/${Date.now()}-${Math.random()
+    const extension = this.getExtension(image.mimeType);
+    const path = `${userId}/${roomId}/${Date.now()}-${Math.random()
       .toString(36)
       .slice(2)}.${extension}`;
     const { error: uploadError } = await supabase.storage
@@ -137,11 +137,7 @@ export class SupabaseChatRepository implements IChatRepository {
       ? { content: "", imageUrl: content.slice(IMAGE_MESSAGE_PREFIX.length) }
       : { content };
 
-  private getExtension(mimeType: string, fileName: string): string {
-    const originalExtension = fileName.split(".").pop()?.toLowerCase();
-    if (originalExtension && /^[a-z0-9]+$/.test(originalExtension)) {
-      return originalExtension;
-    }
+  private getExtension(mimeType: string): string {
     return mimeType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
   }
 }

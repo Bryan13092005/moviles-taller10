@@ -27,7 +27,9 @@ export class SendImageMessageUseCase {
     if (!SUPPORTED_IMAGE_TYPES.has(image.mimeType.toLowerCase())) {
       throw new ChatError("Formato de imagen no compatible");
     }
-    if (image.fileSize && image.fileSize > MAX_IMAGE_SIZE) {
+    const padding = image.base64.endsWith("==") ? 2 : image.base64.endsWith("=") ? 1 : 0;
+    const estimatedSize = image.base64.length * 0.75 - padding;
+    if ((image.fileSize ?? estimatedSize) > MAX_IMAGE_SIZE) {
       throw new ChatError("La imagen no puede superar los 10 MB");
     }
 
