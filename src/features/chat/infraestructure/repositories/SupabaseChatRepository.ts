@@ -23,6 +23,21 @@ export class SupabaseChatRepository implements IChatRepository {
     if (error) throw error;
     return this.mapRoom(data);
   }
+
+  subscribeToRooms(onChange: () => void): () => void {
+    const channel = supabase
+      .channel('rooms')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rooms' },
+        onChange,
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }
  
   async getMessages(roomId: string): Promise<Message[]> {
     const { data, error } = await supabase

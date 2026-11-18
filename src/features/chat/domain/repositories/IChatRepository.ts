@@ -3,6 +3,7 @@ import { ChatImage, Message, Room } from "../entities/Message";
 export interface IChatRepository {
 getRooms(): Promise<Room[]>;
 createRoom(name: string, userId: string): Promise<Room>;
+subscribeToRooms(onChange: () => void): () => void;
 getMessages(roomId: string): Promise<Message[]>;
 sendMessage(
 roomId: string,
